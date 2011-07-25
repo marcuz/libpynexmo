@@ -1,1 +1,3 @@
-repository for libpynexmo, stay tuned!
+Simple python library to interact with Nexmo API
+
+See "nexmosample.py" for usage
