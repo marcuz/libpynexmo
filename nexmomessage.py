@@ -22,7 +22,7 @@ class NexmoMessage:
         self.apifrom = f
         self.apito = t
         self.apimsg = m
-        self.request = "%s?username=%s&password=%s&from=%s&to=%s&text=%s" %
+        self.request = "%s?username=%s&password=%s&from=%s&to=%s&text=%s" % \
                 (self.apiserver, self.apiuser, self.apipass, self.apifrom,
                 self.apito, self.apimsg) 
 
