@@ -5,10 +5,13 @@ import json
 
 class NexmoMessage:
 
-    def __init__(self, s, u, p):
+    def __init__(self, s, u, p, f = False, t = False, m = False):
         self.apiserver = s
         self.apiuser = u
         self.apipass = p
+        self.apifrom = f
+        self.apito = t
+        self.apimsg = m
 
     def urlFix(self, s, charset = 'utf-8'):
         if isinstance(s, unicode):
@@ -22,11 +25,11 @@ class NexmoMessage:
         self.apifrom = f
         self.apito = t
         self.apimsg = m
-        self.request = "%s?username=%s&password=%s&from=%s&to=%s&text=%s" % \
-                (self.apiserver, self.apiuser, self.apipass, self.apifrom,
-                self.apito, self.apimsg) 
 
     def sendRequest(self):
+        self.request = "%s?username=%s&password=%s&from=%s&to=%s&text=%s" % \
+                (self.apiserver, self.apiuser, self.apipass, self.apifrom,
+                 self.apito, self.apimsg) 
         print(json.load(urllib2.urlopen(self.urlFix(self.request))))
 
 # EOF
