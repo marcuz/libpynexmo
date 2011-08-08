@@ -121,8 +121,7 @@ class NexmoMessage:
 
     def send_request_json(self, request):
         req = urllib2.Request(url = self.url_fix(request))
-        if self.sms['reqtype'] == 'json':
-            req.add_header('Accept', 'application/json')
+        req.add_header('Accept', 'application/json')
         return json.load(urllib2.urlopen(req))
 
 # EOF
