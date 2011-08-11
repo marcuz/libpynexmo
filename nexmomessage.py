@@ -20,7 +20,13 @@ class NexmoMessage:
             'text',
             'binary',
             'wappush',
-            # todo: 'unicode', 'vcal', 'vcard'
+            'vcal',
+            'vcard',
+            # todo: 'unicode'
+        ]
+        self.reqtypes = [
+            'json',
+            'xml'
         ]
 
     def url_fix(self, s, charset = 'utf-8'):
@@ -49,6 +55,16 @@ class NexmoMessage:
         self.sms['url'] = url
         self.sms['validity'] = validity
 
+    def set_vcal_info(self, vcal):
+        # automatically transforms msg to vcal SMS
+        self.sms['type'] = 'vcal'
+        self.sms['vcal'] = vcal
+
+    def set_vcard_info(self, vcard):
+        # automatically transforms msg to vcard SMS
+        self.sms['type'] = 'vcard'
+        self.sms['vcard'] = vcard
+
     def check_sms(self):
         """ http://www.nexmo.com/documentation/index.html#request """
         # mandatory parameters for all requests
@@ -71,6 +87,12 @@ class NexmoMessage:
                 not self.sms['title'] or 'url' not in self.sms or \
                 not self.sms['url']):
             return False
+        elif self.sms['type'] == 'vcal' and ('vcal' not in self.sms or \
+                not self.sms['vcal']):
+            return False
+        elif self.sms['type'] == 'vcard' and ('vcard' not in self.sms or \
+                not self.sms['vcard']):
+            return False
         elif ('from' not in self.sms or not self.sms['from']) or \
                 ('to' not in self.sms or not self.sms['to']):
             return False
@@ -86,8 +108,9 @@ class NexmoMessage:
                 self.sms['username'], self.sms['password'])
             return self.request
         else:
-            if self.sms['reqtype'] == 'json':
-                self.sms['server'] = "%s/sms/json" % BASEURL
+            if self.sms['reqtype'] not in self.reqtypes:
+                return False
+            self.sms['server'] = "%s/sms/%s" % (BASEURL, self.sms['reqtype'])
             # basic request
             self.request = "%s?username=%s&password=%s&from=%s&to=%s&type=%s" % \
                 (self.sms['server'], self.sms['username'],
@@ -106,6 +129,12 @@ class NexmoMessage:
                     self.sms['url'])
                 if self.sms['validity']:
                     self.request += "&validity=%s" % self.sms['validity']
+            # vcal message
+            elif self.sms['type'] == 'vcal':
+                self.request += "&vcal=%s" % self.sms['vcal']
+            # vcard message
+            elif self.sms['type'] == 'vcard':
+                self.request += "&vcard=%s" % self.sms['vcard']
             return self.request
         return False
 
@@ -118,10 +147,15 @@ class NexmoMessage:
         # for the future (XML)
         if self.sms['reqtype'] == 'json':
             return self.send_request_json(self.request)
+        elif self.sms['reqtype'] == 'xml':
+            return self.send_request_xml(self.request)
 
     def send_request_json(self, request):
         req = urllib2.Request(url = self.url_fix(request))
         req.add_header('Accept', 'application/json')
         return json.load(urllib2.urlopen(req))
+
+    def send_request_xml(self, request):
+        pass
 
 # EOF
