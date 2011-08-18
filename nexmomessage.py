@@ -1,3 +1,4 @@
+import feedparser
 import urllib
 import urllib2
 import urlparse
@@ -144,7 +145,6 @@ class NexmoMessage:
     def send_request(self):
         if not self.build_request():
             return False
-        # for the future (XML)
         if self.sms['reqtype'] == 'json':
             return self.send_request_json(self.request)
         elif self.sms['reqtype'] == 'xml':
@@ -156,6 +156,6 @@ class NexmoMessage:
         return json.load(urllib2.urlopen(req))
 
     def send_request_xml(self, request):
-        pass
+        return "XML request not implemented yet."
 
 # EOF
