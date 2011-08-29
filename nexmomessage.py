@@ -152,7 +152,10 @@ class NexmoMessage:
     def send_request_json(self, request):
         req = urllib2.Request(url = self.url_fix(request))
         req.add_header('Accept', 'application/json')
-        return json.load(urllib2.urlopen(req))
+        try:
+            return json.load(urllib2.urlopen(req))
+        except ValueError:
+            return False
 
     def send_request_xml(self, request):
         return "XML request not implemented yet."
