@@ -1,4 +1,3 @@
-import feedparser
 import urllib
 import urllib2
 import urlparse
