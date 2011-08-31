@@ -166,7 +166,6 @@ class NexmoMessage:
             return self.send_request_xml(self.request)
 
     def send_request_json(self, request):
-        print request
         req = urllib2.Request(url = self.url_fix(request))
         req.add_header('Accept', 'application/json')
         try:
