@@ -16,13 +16,16 @@ class NexmoMessage:
         if 'reqtype' not in self.sms:
             self.sms['reqtype'] = 'json'
         self.smstypes = [
-            'balance',
             'text',
             'binary',
             'wappush',
             'vcal',
             'vcard',
             # todo: 'unicode'
+        ]
+        self.apireqs = [
+            'balance',
+            'pricing'
         ]
         self.reqtypes = [
             'json',
@@ -66,14 +69,21 @@ class NexmoMessage:
         self.sms['vcard'] = vcard
 
     def check_sms(self):
-        """ http://www.nexmo.com/documentation/index.html#request """
+        """ http://www.nexmo.com/documentation/index.html#request
+            http://www.nexmo.com/documentation/api/ """
         # mandatory parameters for all requests
         if (('username' not in self.sms or not self.sms['username']) or \
                 ('password' not in self.sms or not self.sms['password'])):
             return False
+        # API requests handling
+        if self.sms['type'] in self.apireqs:
+             if self.sms['type'] == 'balance':
+                 return True
+             elif self.sms['type'] == 'pricing' and ('country' not in self.sms
+                     or not self.sms['country']):
+                 return False
+             return True
         # SMS logic, check Nexmo doc for details
-        elif self.sms['type'] == 'balance':
-            return True
         elif self.sms['type'] not in self.smstypes:
             return False
         elif self.sms['type'] == 'text' and ('text' not in self.sms or \
@@ -102,12 +112,18 @@ class NexmoMessage:
         # check SMS logic
         if not self.check_sms():
             return False
-        elif self.sms['type'] == 'balance':
-            self.sms['server'] = "%s/account/get-balance" % BASEURL
-            self.request = "%s/%s/%s" % (self.sms['server'],
-                self.sms['username'], self.sms['password'])
+        elif self.sms['type'] in self.apireqs:
+            # basic API requests
+            if self.sms['type'] == 'balance':
+                self.request = "%s/account/get-balance/%s/%s" % (BASEURL,
+                    self.sms['username'], self.sms['password'])
+            elif self.sms['type'] == 'pricing':
+                self.request = "%s/account/get-pricing/outbound/%s/%s/%s" \
+                    % (BASEURL, self.sms['username'], self.sms['password'],
+                       self.sms['country'])
             return self.request
         else:
+            # standard requests
             if self.sms['reqtype'] not in self.reqtypes:
                 return False
             self.sms['server'] = "%s/sms/%s" % (BASEURL, self.sms['reqtype'])
@@ -150,6 +166,7 @@ class NexmoMessage:
             return self.send_request_xml(self.request)
 
     def send_request_json(self, request):
+        print request
         req = urllib2.Request(url = self.url_fix(request))
         req.add_header('Accept', 'application/json')
         try:
