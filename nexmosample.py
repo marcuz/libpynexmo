@@ -17,9 +17,22 @@ def main():
 
     msg = {'reqtype': r, 'password': p, 'from': f, 'to': t, 'username': u}
 
-    bal_req = {'password': p, 'username': u, 'type': 'balance'}
-    print NexmoMessage(bal_req).send_request()
+    # account balance
+    req = {'password': p, 'username': u, 'type': 'balance'}
+    print("request details: %s") % NexmoMessage(req).get_details()
+    print NexmoMessage(req).send_request()
 
+    print
+
+    # pricing for country 'NL'
+    req['type'] = 'pricing'
+    req['country'] = 'NL'
+    print("request details: %s") % NexmoMessage(req).get_details()
+    print NexmoMessage(req).send_request()
+
+    print
+
+    # text message
     msg['text'] = m
     sms1 = NexmoMessage(msg)
     print("SMS details: %s") % sms1.get_details()
@@ -30,6 +43,7 @@ def main():
 
     print
 
+    # bin message
     sms2 = NexmoMessage(msg)
     sms2.set_bin_info(bb, bu)
     print("SMS details: %s") % sms2.get_details()
@@ -37,14 +51,13 @@ def main():
 
     print
 
+    # wap message
     msg['title'] = "this is a test"
     msg['url'] = "http://twitter.com/tmarcuz"
     msg['text'] = False
     sms3 = NexmoMessage(msg)
     print("SMS details: %s") % sms3.get_details()
     print sms3.send_request()
-
-    print NexmoMessage(bal_req).send_request()
 
 if __name__ == "__main__":
     sys.exit(main());
