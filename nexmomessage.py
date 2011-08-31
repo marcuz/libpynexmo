@@ -3,7 +3,7 @@ import urllib2
 import urlparse
 import json
 
-BASEURL = "http://rest.nexmo.com"
+BASEURL = "https://rest.nexmo.com"
 
 class NexmoMessage:
 
