@@ -25,7 +25,8 @@ class NexmoMessage:
         ]
         self.apireqs = [
             'balance',
-            'pricing'
+            'pricing',
+            'numbers'
         ]
         self.reqtypes = [
             'json',
@@ -77,7 +78,7 @@ class NexmoMessage:
             return False
         # API requests handling
         if self.sms['type'] in self.apireqs:
-             if self.sms['type'] == 'balance':
+             if self.sms['type'] == 'balance' or self.sms['type'] == 'numbers':
                  return True
              elif self.sms['type'] == 'pricing' and ('country' not in self.sms
                      or not self.sms['country']):
@@ -114,13 +115,19 @@ class NexmoMessage:
             return False
         elif self.sms['type'] in self.apireqs:
             # basic API requests
+            # balance
             if self.sms['type'] == 'balance':
                 self.request = "%s/account/get-balance/%s/%s" % (BASEURL,
                     self.sms['username'], self.sms['password'])
+            # pricing
             elif self.sms['type'] == 'pricing':
                 self.request = "%s/account/get-pricing/outbound/%s/%s/%s" \
                     % (BASEURL, self.sms['username'], self.sms['password'],
                        self.sms['country'])
+            # numbers
+            elif self.sms['type'] == 'numbers':
+                self.request = "%s/account/numbers/%s/%s" % (BASEURL,
+                    self.sms['username'], self.sms['password'])
             return self.request
         else:
             # standard requests

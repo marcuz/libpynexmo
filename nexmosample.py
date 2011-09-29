@@ -24,6 +24,13 @@ def main():
 
     print
 
+    # my numbers
+    req = {'password': p, 'username': u, 'type': 'numbers'}
+    print("request details: %s") % NexmoMessage(req).get_details()
+    print NexmoMessage(req).send_request()
+
+    print
+
     # pricing for country 'NL'
     req['type'] = 'pricing'
     req['country'] = 'NL'
@@ -31,6 +38,8 @@ def main():
     print NexmoMessage(req).send_request()
 
     print
+
+    sys.exit()
 
     # text message
     msg['text'] = m
