@@ -21,7 +21,7 @@ class NexmoMessage:
             'wappush',
             'vcal',
             'vcard',
-            # todo: 'unicode'
+            'unicode'
         ]
         self.apireqs = [
             'balance',
@@ -133,31 +133,11 @@ class NexmoMessage:
             # standard requests
             if self.sms['reqtype'] not in self.reqtypes:
                 return False
-            self.sms['server'] = "%s/sms/%s" % (BASEURL, self.sms['reqtype'])
-            # basic request
-            self.request = "%s?username=%s&password=%s&from=%s&to=%s&type=%s" % \
-                (self.sms['server'], self.sms['username'],
-                 self.sms['password'], self.sms['from'],
-                 self.sms['to'], self.sms['type'])
-            # text message
-            if self.sms['type'] == 'text':
-                self.request += "&text=%s" % self.sms['text']
-            # binary message
-            elif self.sms['type'] == 'binary':
-                self.request += "&body=%s&udh=%s" % (self.sms['body'],
-                    self.sms['udh'])
-            # wappush message
-            elif self.sms['type'] == 'wappush':
-                self.request += "&title=%s&url=%s" % (self.sms['title'],
-                    self.sms['url'])
-                if self.sms['validity']:
-                    self.request += "&validity=%s" % self.sms['validity']
-            # vcal message
-            elif self.sms['type'] == 'vcal':
-                self.request += "&vcal=%s" % self.sms['vcal']
-            # vcard message
-            elif self.sms['type'] == 'vcard':
-                self.request += "&vcard=%s" % self.sms['vcard']
+            params = self.sms.copy()
+            params.pop( 'reqtype')
+            params.pop( 'server')
+            server = "%s/sms/%s" % (BASEURL, self.sms['reqtype'])
+            self.request = server+ "?" + urllib.urlencode( params)
             return self.request
         return False
 
@@ -173,7 +153,8 @@ class NexmoMessage:
             return self.send_request_xml(self.request)
 
     def send_request_json(self, request):
-        req = urllib2.Request(url = self.url_fix(request))
+        url = request
+        req = urllib2.Request(url = url)
         req.add_header('Accept', 'application/json')
         try:
             return json.load(urllib2.urlopen(req))
