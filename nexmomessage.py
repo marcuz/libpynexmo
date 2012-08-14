@@ -5,16 +5,15 @@ import json
 
 BASEURL = "https://rest.nexmo.com"
 
+
 class NexmoMessage:
 
     def __init__(self, details):
         self.sms = details
-        if 'type' not in self.sms:
-            self.sms['type'] = 'text'
-        if 'server' not in self.sms:
-            self.sms['server'] = BASEURL
-        if 'reqtype' not in self.sms:
-            self.sms['reqtype'] = 'json'
+        self.sms.setdefault('type', 'text')
+        self.sms.setdefault('server', BASEURL)
+        self.sms.setdefault('reqtype', 'json')
+
         self.smstypes = [
             'text',
             'binary',
@@ -33,7 +32,7 @@ class NexmoMessage:
             'xml'
         ]
 
-    def url_fix(self, s, charset = 'utf-8'):
+    def url_fix(self, s, charset='utf-8'):
         if isinstance(s, unicode):
             s = s.encode(charset, 'ignore')
         scheme, netloc, path, qs, anchor = urlparse.urlsplit(s)
@@ -52,7 +51,7 @@ class NexmoMessage:
         self.sms['body'] = body
         self.sms['udh'] = udh
 
-    def set_wappush_info(self, title, url, validity = False):
+    def set_wappush_info(self, title, url, validity=False):
         # automatically transforms msg to wappush SMS
         self.sms['type'] = 'wappush'
         self.sms['title'] = title
@@ -73,39 +72,33 @@ class NexmoMessage:
         """ http://www.nexmo.com/documentation/index.html#request
             http://www.nexmo.com/documentation/api/ """
         # mandatory parameters for all requests
-        if (('username' not in self.sms or not self.sms['username']) or \
-                ('password' not in self.sms or not self.sms['password'])):
+        if not self.sms.get('username') or not self.sms.get('password'):
             return False
+
         # API requests handling
         if self.sms['type'] in self.apireqs:
-             if self.sms['type'] == 'balance' or self.sms['type'] == 'numbers':
-                 return True
-             elif self.sms['type'] == 'pricing' and ('country' not in self.sms
-                     or not self.sms['country']):
-                 return False
-             return True
+            if self.sms['type'] == 'balance' or self.sms['type'] == 'numbers':
+                return True
+            elif self.sms['type'] == 'pricing' and ('country' not in self.sms
+                    or not self.sms['country']):
+                return False
+            return True
         # SMS logic, check Nexmo doc for details
         elif self.sms['type'] not in self.smstypes:
             return False
-        elif self.sms['type'] == 'text' and ('text' not in self.sms or \
-                not self.sms['text']):
+        elif self.sms['type'] == 'text' and not self.sms.get('text'):
             return False
-        elif self.sms['type'] == 'binary' and ('body' not in self.sms or \
-                not self.sms['body'] or 'body' not in self.sms or \
-                not self.sms['udh']):
+        elif self.sms['type'] == 'binary' and (not self.sms.get('body') or \
+                not self.sms.get('udh')):
             return False
-        elif self.sms['type'] == 'wappush' and ('title' not in self.sms or \
-                not self.sms['title'] or 'url' not in self.sms or \
-                not self.sms['url']):
+        elif self.sms['type'] == 'wappush' and (not self.sms.get('title') or \
+                not self.sms.get('url')):
             return False
-        elif self.sms['type'] == 'vcal' and ('vcal' not in self.sms or \
-                not self.sms['vcal']):
+        elif self.sms['type'] == 'vcal' and not self.sms.get('vcal'):
             return False
-        elif self.sms['type'] == 'vcard' and ('vcard' not in self.sms or \
-                not self.sms['vcard']):
+        elif self.sms['type'] == 'vcard' and not self.sms.get('vcard'):
             return False
-        elif ('from' not in self.sms or not self.sms['from']) or \
-                ('to' not in self.sms or not self.sms['to']):
+        elif not self.sms.get('from') or not self.sms.get('to'):
             return False
         return True
 
@@ -134,10 +127,10 @@ class NexmoMessage:
             if self.sms['reqtype'] not in self.reqtypes:
                 return False
             params = self.sms.copy()
-            params.pop( 'reqtype')
-            params.pop( 'server')
+            params.pop('reqtype')
+            params.pop('server')
             server = "%s/sms/%s" % (BASEURL, self.sms['reqtype'])
-            self.request = server+ "?" + urllib.urlencode( params)
+            self.request = server + "?" + urllib.urlencode(params)
             return self.request
         return False
 
@@ -154,7 +147,7 @@ class NexmoMessage:
 
     def send_request_json(self, request):
         url = request
-        req = urllib2.Request(url = url)
+        req = urllib2.Request(url=url)
         req.add_header('Accept', 'application/json')
         try:
             return json.load(urllib2.urlopen(req))
@@ -163,5 +156,3 @@ class NexmoMessage:
 
     def send_request_xml(self, request):
         return "XML request not implemented yet."
-
-# EOF
