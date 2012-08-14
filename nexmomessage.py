@@ -79,8 +79,7 @@ class NexmoMessage:
         if self.sms['type'] in self.apireqs:
             if self.sms['type'] == 'balance' or self.sms['type'] == 'numbers':
                 return True
-            elif self.sms['type'] == 'pricing' and ('country' not in self.sms
-                    or not self.sms['country']):
+            elif self.sms['type'] == 'pricing' and not self.sms.get('country'):
                 return False
             return True
         # SMS logic, check Nexmo doc for details
