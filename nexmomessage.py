@@ -10,12 +10,10 @@ class NexmoMessage:
 
     def __init__(self, details):
         self.sms = details
-        if 'type' not in self.sms:
-            self.sms['type'] = 'text'
-        if 'server' not in self.sms:
-            self.sms['server'] = BASEURL
-        if 'reqtype' not in self.sms:
-            self.sms['reqtype'] = 'json'
+        self.sms.setdefault('type', 'text')
+        self.sms.setdefault('server', BASEURL)
+        self.sms.setdefault('reqtype', 'json')
+
         self.smstypes = [
             'text',
             'binary',
@@ -74,12 +72,11 @@ class NexmoMessage:
         """ http://www.nexmo.com/documentation/index.html#request
             http://www.nexmo.com/documentation/api/ """
         # mandatory parameters for all requests
-        if (('username' not in self.sms or not self.sms['username']) or \
-                ('password' not in self.sms or not self.sms['password'])):
+        if not self.sms.get('username') or not self.sms.get('password'):
             return False
+
         # API requests handling
         if self.sms['type'] in self.apireqs:
-
             if self.sms['type'] == 'balance' or self.sms['type'] == 'numbers':
                 return True
             elif self.sms['type'] == 'pricing' and ('country' not in self.sms
@@ -89,25 +86,19 @@ class NexmoMessage:
         # SMS logic, check Nexmo doc for details
         elif self.sms['type'] not in self.smstypes:
             return False
-        elif self.sms['type'] == 'text' and ('text' not in self.sms or \
-                not self.sms['text']):
+        elif self.sms['type'] == 'text' and not self.sms.get('text'):
             return False
-        elif self.sms['type'] == 'binary' and ('body' not in self.sms or \
-                not self.sms['body'] or 'body' not in self.sms or \
-                not self.sms['udh']):
+        elif self.sms['type'] == 'binary' and (not self.sms.get('body') or \
+                not self.sms.get('udh')):
             return False
-        elif self.sms['type'] == 'wappush' and ('title' not in self.sms or \
-                not self.sms['title'] or 'url' not in self.sms or \
-                not self.sms['url']):
+        elif self.sms['type'] == 'wappush' and (not self.sms.get('title') or \
+                not self.sms.get('url')):
             return False
-        elif self.sms['type'] == 'vcal' and ('vcal' not in self.sms or \
-                not self.sms['vcal']):
+        elif self.sms['type'] == 'vcal' and not self.sms.get('vcal'):
             return False
-        elif self.sms['type'] == 'vcard' and ('vcard' not in self.sms or \
-                not self.sms['vcard']):
+        elif self.sms['type'] == 'vcard' and not self.sms.get('vcard'):
             return False
-        elif ('from' not in self.sms or not self.sms['from']) or \
-                ('to' not in self.sms or not self.sms['to']):
+        elif not self.sms.get('from') or not self.sms.get('to'):
             return False
         return True
 
