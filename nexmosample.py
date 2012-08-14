@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 import sys
+
 from nexmomessage import NexmoMessage
+
 
 def main():
 
@@ -69,4 +70,4 @@ def main():
     print sms3.send_request()
 
 if __name__ == "__main__":
-    sys.exit(main());
+    sys.exit(main())

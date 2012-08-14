@@ -5,6 +5,7 @@ import json
 
 BASEURL = "https://rest.nexmo.com"
 
+
 class NexmoMessage:
 
     def __init__(self, details):
@@ -33,7 +34,7 @@ class NexmoMessage:
             'xml'
         ]
 
-    def url_fix(self, s, charset = 'utf-8'):
+    def url_fix(self, s, charset='utf-8'):
         if isinstance(s, unicode):
             s = s.encode(charset, 'ignore')
         scheme, netloc, path, qs, anchor = urlparse.urlsplit(s)
@@ -52,7 +53,7 @@ class NexmoMessage:
         self.sms['body'] = body
         self.sms['udh'] = udh
 
-    def set_wappush_info(self, title, url, validity = False):
+    def set_wappush_info(self, title, url, validity=False):
         # automatically transforms msg to wappush SMS
         self.sms['type'] = 'wappush'
         self.sms['title'] = title
@@ -78,12 +79,13 @@ class NexmoMessage:
             return False
         # API requests handling
         if self.sms['type'] in self.apireqs:
-             if self.sms['type'] == 'balance' or self.sms['type'] == 'numbers':
-                 return True
-             elif self.sms['type'] == 'pricing' and ('country' not in self.sms
-                     or not self.sms['country']):
-                 return False
-             return True
+
+            if self.sms['type'] == 'balance' or self.sms['type'] == 'numbers':
+                return True
+            elif self.sms['type'] == 'pricing' and ('country' not in self.sms
+                    or not self.sms['country']):
+                return False
+            return True
         # SMS logic, check Nexmo doc for details
         elif self.sms['type'] not in self.smstypes:
             return False
@@ -134,10 +136,10 @@ class NexmoMessage:
             if self.sms['reqtype'] not in self.reqtypes:
                 return False
             params = self.sms.copy()
-            params.pop( 'reqtype')
-            params.pop( 'server')
+            params.pop('reqtype')
+            params.pop('server')
             server = "%s/sms/%s" % (BASEURL, self.sms['reqtype'])
-            self.request = server+ "?" + urllib.urlencode( params)
+            self.request = server + "?" + urllib.urlencode(params)
             return self.request
         return False
 
@@ -154,7 +156,7 @@ class NexmoMessage:
 
     def send_request_json(self, request):
         url = request
-        req = urllib2.Request(url = url)
+        req = urllib2.Request(url=url)
         req.add_header('Accept', 'application/json')
         try:
             return json.load(urllib2.urlopen(req))
@@ -163,5 +165,3 @@ class NexmoMessage:
 
     def send_request_xml(self, request):
         return "XML request not implemented yet."
-
-# EOF
