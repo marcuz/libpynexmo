@@ -72,7 +72,7 @@ class NexmoMessage:
         """ http://www.nexmo.com/documentation/index.html#request
             http://www.nexmo.com/documentation/api/ """
         # mandatory parameters for all requests
-        if not self.sms.get('username') or not self.sms.get('password'):
+        if not self.sms.get('api_key') or not self.sms.get('api_secret'):
             return False
 
         # API requests handling
@@ -87,11 +87,11 @@ class NexmoMessage:
             return False
         elif self.sms['type'] == 'text' and not self.sms.get('text'):
             return False
-        elif self.sms['type'] == 'binary' and (not self.sms.get('body') or \
-                not self.sms.get('udh')):
+        elif self.sms['type'] == 'binary' and (not self.sms.get('body') or
+                                               not self.sms.get('udh')):
             return False
-        elif self.sms['type'] == 'wappush' and (not self.sms.get('title') or \
-                not self.sms.get('url')):
+        elif self.sms['type'] == 'wappush' and (not self.sms.get('title') or
+                                                not self.sms.get('url')):
             return False
         elif self.sms['type'] == 'vcal' and not self.sms.get('vcal'):
             return False
@@ -110,16 +110,16 @@ class NexmoMessage:
             # balance
             if self.sms['type'] == 'balance':
                 self.request = "%s/account/get-balance/%s/%s" % (BASEURL,
-                    self.sms['username'], self.sms['password'])
+                               self.sms['api_key'], self.sms['api_secret'])
             # pricing
             elif self.sms['type'] == 'pricing':
                 self.request = "%s/account/get-pricing/outbound/%s/%s/%s" \
-                    % (BASEURL, self.sms['username'], self.sms['password'],
+                    % (BASEURL, self.sms['api_key'], self.sms['api_secret'],
                        self.sms['country'])
             # numbers
             elif self.sms['type'] == 'numbers':
                 self.request = "%s/account/numbers/%s/%s" % (BASEURL,
-                    self.sms['username'], self.sms['password'])
+                               self.sms['api_key'], self.sms['api_secret'])
             return self.request
         else:
             # standard requests
