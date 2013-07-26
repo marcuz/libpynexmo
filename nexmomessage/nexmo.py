@@ -72,8 +72,10 @@ class NexmoMessage:
     def set_text_info(self, text):
         # automatically transforms msg to text SMS
         self.sms['type'] = 'text'
-        # if message is unicode send as unicode
-        if isinstance(text, unicode):
+        # if message have unicode symbols send as unicode
+        try:
+            text.decode('ascii')
+        except UnicodeDecodeError:
             self.sms['type'] = 'unicode'
         self.sms['text'] = text
 
