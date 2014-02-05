@@ -2,7 +2,7 @@ nexmomessage
 ============
 
 
-A Python wrapper for the [Nexmo API](https://www.nexmo.com/documentation/api/index.html).
+A Python wrapper for the [Nexmo API](https://docs.nexmo.com/index.php/messaging-sms-api/).
 
 
 Installation
@@ -57,7 +57,7 @@ Troubleshooting
 
 Remember that phone numbers should be specified in international format.
 
-The Nexmo documentation contains a [list of error codes](http://nexmo.com/documentation/index.html#response_code)
+The Nexmo documentation contains a [list of error codes](https://docs.nexmo.com/index.php/sms-api/send-message)
 which may be useful if you have problems sending a message.
 
 Please report all bugs/issues via the GitHub issue tracker.
