@@ -72,8 +72,10 @@ class NexmoMessage:
     def set_text_info(self, text):
         # automatically transforms msg to text SMS
         self.sms['type'] = 'text'
-        # if message is unicode send as unicode
-        if isinstance(text, unicode):
+        # if message have unicode symbols send as unicode
+        try:
+            text.decode('ascii')
+        except:
             self.sms['type'] = 'unicode'
         self.sms['text'] = text
 
@@ -161,6 +163,8 @@ class NexmoMessage:
             params.pop('reqtype')
             params.pop('server')
             server = "%s/sms/%s" % (BASEURL, self.sms['reqtype'])
+            for k, v in params.iteritems():
+                params[k] = unicode(v).encode('utf-8')
             self.request = server + "?" + urllib.urlencode(params)
             return self.request
 
