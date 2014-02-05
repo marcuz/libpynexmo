@@ -168,6 +168,9 @@ class NexmoMessage:
         return self.sms
 
     def send_request(self):
+        if self.sms['type'] == 'unicode':
+            self.sms['text'] = self.sms['text'].encode("utf-8")
+
         if not self.build_request():
             return False
         if self.sms['reqtype'] == 'json':
