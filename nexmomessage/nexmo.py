@@ -103,8 +103,6 @@ class NexmoMessage:
         self.sms['vcard'] = vcard
 
     def check_sms(self):
-        """ http://www.nexmo.com/documentation/index.html#request
-            http://www.nexmo.com/documentation/api/ """
         # mandatory parameters for all requests
         if not self.sms.get('api_key') or not self.sms.get('api_secret'):
             raise Exception("API key or secret not set")
@@ -140,7 +138,7 @@ class NexmoMessage:
         if not self.check_sms():
             return False
         elif self.sms['type'] in self.apireqs:
-            # basic API requests
+            # developer API
             # balance
             if self.sms['type'] == 'balance':
                 self.request = "%s/account/get-balance/%s/%s" % (BASEURL,
@@ -174,7 +172,6 @@ class NexmoMessage:
     def send_request(self):
         if self.sms['type'] == 'unicode':
             self.sms['text'] = self.sms['text'].encode("utf-8")
-
         if not self.build_request():
             return False
         if self.sms['reqtype'] == 'json':
