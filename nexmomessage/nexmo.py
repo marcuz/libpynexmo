@@ -77,6 +77,7 @@ class NexmoMessage:
             text.decode('ascii')
         except:
             self.sms['type'] = 'unicode'
+            self.sms['text'] = unicode(text, 'utf8').encode('utf8')
         self.sms['text'] = text
 
     def set_bin_info(self, body, udh):
@@ -161,8 +162,6 @@ class NexmoMessage:
             params.pop('reqtype')
             params.pop('server')
             server = "%s/sms/%s" % (BASEURL, self.sms['reqtype'])
-            for k, v in params.iteritems():
-                params[k] = unicode(v).encode('utf-8')
             self.request = server + "?" + urllib.urlencode(params)
             return self.request
 
@@ -170,8 +169,6 @@ class NexmoMessage:
         return self.sms
 
     def send_request(self):
-        if self.sms['type'] == 'unicode':
-            self.sms['text'] = self.sms['text'].encode("utf-8")
         if not self.build_request():
             return False
         if self.sms['reqtype'] == 'json':
