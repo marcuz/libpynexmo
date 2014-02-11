@@ -142,16 +142,16 @@ class NexmoMessage:
             # developer API
             # balance
             if self.sms['type'] == 'balance':
-                self.request = "%s/account/get-balance/%s/%s" % (BASEURL,
+                self.request = "%s/account/get-balance/%s/%s" % (self.sms['server'],
                                self.sms['api_key'], self.sms['api_secret'])
             # pricing
             elif self.sms['type'] == 'pricing':
                 self.request = "%s/account/get-pricing/outbound/%s/%s/%s" \
-                    % (BASEURL, self.sms['api_key'], self.sms['api_secret'],
+                    % (self.sms['server'], self.sms['api_key'], self.sms['api_secret'],
                        self.sms['country'])
             # numbers
             elif self.sms['type'] == 'numbers':
-                self.request = "%s/account/numbers/%s/%s" % (BASEURL,
+                self.request = "%s/account/numbers/%s/%s" % (self.sms['server'],
                                self.sms['api_key'], self.sms['api_secret'])
             return self.request
         else:
@@ -161,7 +161,7 @@ class NexmoMessage:
             params = self.sms.copy()
             params.pop('reqtype')
             params.pop('server')
-            server = "%s/sms/%s" % (BASEURL, self.sms['reqtype'])
+            server = "%s/sms/%s" % (self.sms['server'], self.sms['reqtype'])
             self.request = server + "?" + urllib.urlencode(params)
             return self.request
 
