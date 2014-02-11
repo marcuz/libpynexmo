@@ -142,17 +142,19 @@ class NexmoMessage:
             # developer API
             # balance
             if self.sms['type'] == 'balance':
-                self.request = "%s/account/get-balance/%s/%s" % (self.sms['server'],
-                               self.sms['api_key'], self.sms['api_secret'])
+                self.request = "%s/account/get-balance/%s/%s" \
+                    % (self.sms['server'], self.sms['api_key'],
+                       self.sms['api_secret'])
             # pricing
             elif self.sms['type'] == 'pricing':
                 self.request = "%s/account/get-pricing/outbound/%s/%s/%s" \
-                    % (self.sms['server'], self.sms['api_key'], self.sms['api_secret'],
-                       self.sms['country'])
+                    % (self.sms['server'], self.sms['api_key'],
+                       self.sms['api_secret'], self.sms['country'])
             # numbers
             elif self.sms['type'] == 'numbers':
-                self.request = "%s/account/numbers/%s/%s" % (self.sms['server'],
-                               self.sms['api_key'], self.sms['api_secret'])
+                self.request = "%s/account/numbers/%s/%s" \
+                    % (self.sms['server'], self.sms['api_key'],
+                       self.sms['api_secret'])
             return self.request
         else:
             # standard requests
