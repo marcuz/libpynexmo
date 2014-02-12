@@ -40,7 +40,7 @@ sms.send_request()
 ```
 
 This method call returns the message data if the message was sent successfully,
-or return Flase if there was an error.
+or raises an exception if there was an error.
 
 ```python
 response = sms.send_request()
