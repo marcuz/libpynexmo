@@ -77,7 +77,8 @@ class NexmoMessage:
             text.decode('ascii')
         except:
             self.sms['type'] = 'unicode'
-            self.sms['text'] = unicode(text, 'utf8').encode('utf8')
+            if isinstance(text, unicode):
+                text = text.encode('utf8')
         self.sms['text'] = text
 
     def set_bin_info(self, body, udh):
