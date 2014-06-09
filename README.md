@@ -33,7 +33,7 @@ sms.set_text_info(msg['text'])
 ```
 
 Then you have a choice. For a "fire and forget" approach to sending a message,
-use the `send_message` method, like this:
+use the `send_request` method, like this:
 
 ```python
 sms.send_request()
