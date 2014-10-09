@@ -27,9 +27,16 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-import urllib
-import urllib2
-import urlparse
+try:
+    import urllib
+    import urllib2
+    import urlparse
+except ImportError:
+    from urllib import parse as urllib
+    from urllib import request as urllib2
+    from urllib import parse as urlparse
+    unicode = str
+
 import json
 
 BASEURL = "https://rest.nexmo.com"
@@ -184,7 +191,10 @@ class NexmoMessage:
         req = urllib2.Request(url=url)
         req.add_header('Accept', 'application/json')
         try:
-            return json.load(urllib2.urlopen(req))
+            response = urllib2.urlopen(req)
+            assert response.status == 200
+            data = response.read()
+            return json.loads(data.decode('utf-8'))
         except ValueError:
             return False
 
