@@ -35,8 +35,7 @@ import json
 BASEURL = "https://rest.nexmo.com"
 
 
-class NexmoMessage:
-
+class NexmoMessage(object):
     def __init__(self, details):
         self.sms = details
         self.sms.setdefault('type', 'text')
@@ -177,6 +176,139 @@ class NexmoMessage:
         if self.sms['reqtype'] == 'json':
             return self.send_request_json(self.request)
         elif self.sms['reqtype'] == 'xml':
+            return self.send_request_xml(self.request)
+
+    def send_request_json(self, request):
+        url = request
+        req = urllib2.Request(url=url)
+        req.add_header('Accept', 'application/json')
+        try:
+            return json.load(urllib2.urlopen(req))
+        except ValueError:
+            return False
+
+    def send_request_xml(self, request):
+        return "XML request not implemented yet."
+
+class NexmoCall(object):
+    def __init__(self, details):
+        self.call = details
+        self.call.setdefault('type', 'call')
+        self.call.setdefault('server', BASEURL)
+        self.call.setdefault('reqtype', 'json')
+
+        self.reqtypes = [
+            'json',
+            'xml'
+        ]
+
+    def url_fix(self, s, charset='utf-8'):
+        if isinstance(s, unicode):
+            s = s.encode(charset, 'ignore')
+        scheme, netloc, path, qs, anchor = urlparse.urlsplit(s)
+        path = urllib.quote(path, '/%')
+        qs = urllib.quote_plus(qs, ':&=')
+        return urlparse.urlunsplit((scheme, netloc, path, qs, anchor))
+
+    def check_call(self):
+        # mandatory parameters for all requests
+        if not self.call.get('api_key') or not self.call.get('api_secret'):
+            raise Exception("API key or secret not set")
+
+        if ((not self.call.has_key('answer_url')) or
+                (not self.call.get('answer_url'))):
+            raise Exception('Answer URL not set')
+
+        return True
+
+    def build_request(self):
+        # check call logic
+        if not self.check_call():
+            return False
+        else:
+            # standard requests
+            params = self.call.copy()
+            params.pop('reqtype')
+            params.pop('server')
+            server = "%s/call/%s" % (self.call['server'], self.call['reqtype'])
+            self.request = server + "?" + urllib.urlencode(params)
+            return self.request
+
+    def get_details(self):
+        return self.call
+
+    def send_request(self):
+        if not self.build_request():
+            return False
+        if self.call['reqtype'] == 'json':
+            return self.send_request_json(self.request)
+        elif self.call['reqtype'] == 'xml':
+            return self.send_request_xml(self.request)
+
+    def send_request_json(self, request):
+        url = request
+        req = urllib2.Request(url=url)
+        req.add_header('Accept', 'application/json')
+        try:
+            return json.load(urllib2.urlopen(req))
+        except ValueError:
+            return False
+
+    def send_request_xml(self, request):
+        return "XML request not implemented yet."
+
+class NexmoTTS(object):
+    def __init__(self, details):
+        self.tts = details
+        self.tts.setdefault('type', 'tts')
+        self.tts.setdefault('server', BASEURL)
+        self.tts.setdefault('reqtype', 'json')
+
+        self.reqtypes = [
+            'json',
+            'xml'
+        ]
+
+    def url_fix(self, s, charset='utf-8'):
+        if isinstance(s, unicode):
+            s = s.encode(charset, 'ignore')
+        scheme, netloc, path, qs, anchor = urlparse.urlsplit(s)
+        path = urllib.quote(path, '/%')
+        qs = urllib.quote_plus(qs, ':&=')
+        return urlparse.urlunsplit((scheme, netloc, path, qs, anchor))
+
+    def check_tts(self):
+        # mandatory parameters for all requests
+        if not self.tts.get('api_key') or not self.tts.get('api_secret'):
+            raise Exception("API key or secret not set")
+
+        if ((not self.tts.has_key('text')) or (not self.tts.get('text'))):
+            raise Exception('Text not set')
+
+        return True
+
+    def build_request(self):
+        # check TTS logic
+        if not self.check_tts():
+            return False
+        else:
+            # standard requests
+            params = self.tts.copy()
+            params.pop('reqtype')
+            params.pop('server')
+            server = "%s/tts/%s" % (self.call['server'], self.call['reqtype'])
+            self.request = server + "?" + urllib.urlencode(params)
+            return self.request
+
+    def get_details(self):
+        return self.tts
+
+    def send_request(self):
+        if not self.build_request():
+            return False
+        if self.call['reqtype'] == 'json':
+            return self.send_request_json(self.request)
+        elif self.call['reqtype'] == 'xml':
             return self.send_request_xml(self.request)
 
     def send_request_json(self, request):
