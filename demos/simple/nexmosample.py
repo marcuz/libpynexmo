@@ -28,8 +28,9 @@
 #
 
 import sys
+import copy
 
-from nexmomessage import NexmoMessage
+from nexmomessage import NexmoMessage, NexmoTTS
 
 
 def main():
@@ -42,6 +43,7 @@ def main():
     m = "fool the reader àèìòù !!!"
 
     msg = {'reqtype': r, 'api_secret': p, 'from': f, 'to': t, 'api_key': u}
+    tts = copy.deepcopy(msg)
 
     # account balance
     req = {'api_secret': p, 'api_key': u, 'type': 'balance'}
@@ -71,6 +73,11 @@ def main():
     sms1.set_text_info(m)
     print("SMS details: %s") % sms1.get_details()
     print sms1.send_request()
+
+    tts['text'] = "Welcome to Nexmo T T S service."
+    tts1 = NexmoTTS(tts)
+    print("TTS Details: %s") % (tts1.get_details())
+    print tts1.send_request()
 
 if __name__ == "__main__":
     sys.exit(main())
