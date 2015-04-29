@@ -27,19 +27,27 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-import urllib
-import urllib2
-import urlparse
+try:
+    import urllib
+    import urllib2
+    import urlparse
+except ImportError:
+    from urllib import parse as urllib
+    from urllib import request as urllib2
+    from urllib import parse as urlparse
+    unicode = str
+
 import json
 
-BASEURL = "https://rest.nexmo.com"
+RESTURL = "https://rest.nexmo.com"
+APIURL = "https://api.nexmo.com"
 
 
 class NexmoMessage(object):
     def __init__(self, details):
         self.sms = details
         self.sms.setdefault('type', 'text')
-        self.sms.setdefault('server', BASEURL)
+        self.sms.setdefault('server', RESTURL)
         self.sms.setdefault('reqtype', 'json')
 
         self.smstypes = [
@@ -183,7 +191,10 @@ class NexmoMessage(object):
         req = urllib2.Request(url=url)
         req.add_header('Accept', 'application/json')
         try:
-            return json.load(urllib2.urlopen(req))
+            response = urllib2.urlopen(req)
+            assert response.code == 200
+            data = response.read()
+            return json.loads(data.decode('utf-8'))
         except ValueError:
             return False
 
@@ -194,7 +205,7 @@ class NexmoCall(object):
     def __init__(self, details):
         self.call = details
         self.call.setdefault('type', 'call')
-        self.call.setdefault('server', BASEURL)
+        self.call.setdefault('server', RESTURL)
         self.call.setdefault('reqtype', 'json')
 
         self.reqtypes = [
@@ -261,7 +272,7 @@ class NexmoTTS(object):
     def __init__(self, details):
         self.tts = details
         self.tts.setdefault('type', 'tts')
-        self.tts.setdefault('server', BASEURL)
+        self.tts.setdefault('server', APIURL)
         self.tts.setdefault('reqtype', 'json')
 
         self.reqtypes = [
@@ -296,7 +307,7 @@ class NexmoTTS(object):
             params = self.tts.copy()
             params.pop('reqtype')
             params.pop('server')
-            server = "%s/tts/%s" % (self.call['server'], self.call['reqtype'])
+            server = "%s/tts/%s" % (self.tts['server'], self.tts['reqtype'])
             self.request = server + "?" + urllib.urlencode(params)
             return self.request
 
@@ -306,9 +317,9 @@ class NexmoTTS(object):
     def send_request(self):
         if not self.build_request():
             return False
-        if self.call['reqtype'] == 'json':
+        if self.tts['reqtype'] == 'json':
             return self.send_request_json(self.request)
-        elif self.call['reqtype'] == 'xml':
+        elif self.tts['reqtype'] == 'xml':
             return self.send_request_xml(self.request)
 
     def send_request_json(self, request):
