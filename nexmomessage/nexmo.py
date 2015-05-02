@@ -366,3 +366,48 @@ class NexmoVerify(Nexmo):
 
     def get_details(self):
         return self.verify
+
+class NexmoNI(Nexmo):
+    def __init__(self, details):
+        Nexmo.__init__(self)
+        self.ni = details
+        self.ni.setdefault('type', 'ni')
+        self.ni.setdefault('reqtype', 'json')
+
+        self.reqtypes = [
+            'json',
+            'xml'
+        ]
+
+    def check_ni(self):
+        # mandatory parameters for all requests
+        if not self.ni.get('api_key') or not self.ni.get('api_secret'):
+            raise Exception("ni: API key or secret not set")
+
+        # ni request
+        if ((self.ni['type'] == 'ni')
+            and (('number' not in self.ni)
+                 or ('callback' not in self.ni))):
+            raise Exception('ni request: number and/or callback not set')
+
+        return True
+
+    def build_request(self):
+        # check ni logic
+        if not self.check_ni():
+            return False
+        else:
+            # standard requests
+            params = self.ni.copy()
+            params.pop('reqtype')
+            server = "%s/%s/%s" % (self.get_url_rest(), self.ni['type'],
+                                   self.ni['reqtype'])
+            self.request = server + "?" + urllib.urlencode(params)
+            self.ni['request_uri'] = self.request
+            return self.ni
+
+    def send_request(self):
+        return self.send_nexmo_request(self.build_request())
+
+    def get_details(self):
+        return self.ni
