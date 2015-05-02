@@ -39,15 +39,47 @@ except ImportError:
 
 import json
 
-RESTURL = "https://rest.nexmo.com"
-APIURL = "https://api.nexmo.com"
+
+class Nexmo(object):
+    def __init__(self):
+        self.RESTURL = "https://rest.nexmo.com"
+        self.APIURL = "https://api.nexmo.com"
+
+    def __send_request_json(self, request):
+        req = urllib2.Request(url=request)
+        req.add_header('Accept', 'application/json')
+        try:
+            response = urllib2.urlopen(req)
+            assert response.code == 200
+            data = response.read()
+            return json.loads(data.decode('utf-8'))
+        except ValueError:
+            return False
+
+    def __send_request_xml(self, request):
+        return "XML request not implemented yet."
+
+    def send_nexmo_request(self, nexmo_obj):
+        if nexmo_obj['reqtype'] == 'json':
+            return self.__send_request_json(nexmo_obj['request_uri'])
+        elif nexmo_obj['reqtype'] == 'xml':
+            return self.__send_request_xml(nexmo_obj['request_uri'])
+
+    def get_url_rest(self):
+        return self.RESTURL
+
+    def get_url_api(self):
+        return self.APIURL
+
+    def send_request(self):
+        pass
 
 
-class NexmoMessage(object):
+class NexmoMessage(Nexmo):
     def __init__(self, details):
+        Nexmo.__init__(self)
         self.sms = details
         self.sms.setdefault('type', 'text')
-        self.sms.setdefault('server', RESTURL)
         self.sms.setdefault('reqtype', 'json')
 
         self.smstypes = [
@@ -67,14 +99,6 @@ class NexmoMessage(object):
             'json',
             'xml'
         ]
-
-    def url_fix(self, s, charset='utf-8'):
-        if isinstance(s, unicode):
-            s = s.encode(charset, 'ignore')
-        scheme, netloc, path, qs, anchor = urlparse.urlsplit(s)
-        path = urllib.quote(path, '/%')
-        qs = urllib.quote_plus(qs, ':&=')
-        return urlparse.urlunsplit((scheme, netloc, path, qs, anchor))
 
     def set_text_info(self, text):
         # automatically transforms msg to text SMS
@@ -147,65 +171,49 @@ class NexmoMessage(object):
         if not self.check_sms():
             return False
         elif self.sms['type'] in self.apireqs:
+            self.sms['url'] = self.get_url_rest()
             # developer API
             # balance
             if self.sms['type'] == 'balance':
                 self.request = "%s/account/get-balance/%s/%s" \
-                    % (self.sms['server'], self.sms['api_key'],
+                    % (self.sms['url'], self.sms['api_key'],
                        self.sms['api_secret'])
             # pricing
             elif self.sms['type'] == 'pricing':
                 self.request = "%s/account/get-pricing/outbound/%s/%s/%s" \
-                    % (self.sms['server'], self.sms['api_key'],
+                    % (self.sms['url'], self.sms['api_key'],
                        self.sms['api_secret'], self.sms['country'])
             # numbers
             elif self.sms['type'] == 'numbers':
                 self.request = "%s/account/numbers/%s/%s" \
-                    % (self.sms['server'], self.sms['api_key'],
+                    % (self.sms['url'], self.sms['api_key'],
                        self.sms['api_secret'])
-            return self.request
+            self.sms['request_uri'] = self.request
+            return self.sms
         else:
             # standard requests
             if self.sms['reqtype'] not in self.reqtypes:
                 raise Exception("Unknown reqtype")
             params = self.sms.copy()
             params.pop('reqtype')
-            params.pop('server')
-            server = "%s/sms/%s" % (self.sms['server'], self.sms['reqtype'])
+            #params.pop('server')
+            server = "%s/sms/%s" % (self.get_url_rest(), self.sms['reqtype'])
             self.request = server + "?" + urllib.urlencode(params)
-            return self.request
+            self.sms['request_uri'] = self.request
+            return self.sms
+
+    def send_request(self):
+        return self.send_nexmo_request(self.build_request())
 
     def get_details(self):
         return self.sms
 
-    def send_request(self):
-        if not self.build_request():
-            return False
-        if self.sms['reqtype'] == 'json':
-            return self.send_request_json(self.request)
-        elif self.sms['reqtype'] == 'xml':
-            return self.send_request_xml(self.request)
 
-    def send_request_json(self, request):
-        url = request
-        req = urllib2.Request(url=url)
-        req.add_header('Accept', 'application/json')
-        try:
-            response = urllib2.urlopen(req)
-            assert response.code == 200
-            data = response.read()
-            return json.loads(data.decode('utf-8'))
-        except ValueError:
-            return False
-
-    def send_request_xml(self, request):
-        return "XML request not implemented yet."
-
-class NexmoCall(object):
+class NexmoCall(Nexmo):
     def __init__(self, details):
+        Nexmo.__init__(self)
         self.call = details
         self.call.setdefault('type', 'call')
-        self.call.setdefault('server', RESTURL)
         self.call.setdefault('reqtype', 'json')
 
         self.reqtypes = [
@@ -213,20 +221,12 @@ class NexmoCall(object):
             'xml'
         ]
 
-    def url_fix(self, s, charset='utf-8'):
-        if isinstance(s, unicode):
-            s = s.encode(charset, 'ignore')
-        scheme, netloc, path, qs, anchor = urlparse.urlsplit(s)
-        path = urllib.quote(path, '/%')
-        qs = urllib.quote_plus(qs, ':&=')
-        return urlparse.urlunsplit((scheme, netloc, path, qs, anchor))
-
     def check_call(self):
         # mandatory parameters for all requests
         if not self.call.get('api_key') or not self.call.get('api_secret'):
             raise Exception("API key or secret not set")
 
-        if ((not self.call.has_key('answer_url')) or
+        if (('answer_url' not in self.call) or
                 (not self.call.get('answer_url'))):
             raise Exception('Answer URL not set')
 
@@ -240,39 +240,23 @@ class NexmoCall(object):
             # standard requests
             params = self.call.copy()
             params.pop('reqtype')
-            params.pop('server')
-            server = "%s/call/%s" % (self.call['server'], self.call['reqtype'])
+            server = "%s/call/%s" % (self.get_url_rest(), self.call['reqtype'])
             self.request = server + "?" + urllib.urlencode(params)
-            return self.request
+            self.call['request_uri'] = self.request
+            return self.call
+
+    def send_request(self):
+        return self.send_nexmo_request(self.build_request())
 
     def get_details(self):
         return self.call
 
-    def send_request(self):
-        if not self.build_request():
-            return False
-        if self.call['reqtype'] == 'json':
-            return self.send_request_json(self.request)
-        elif self.call['reqtype'] == 'xml':
-            return self.send_request_xml(self.request)
 
-    def send_request_json(self, request):
-        url = request
-        req = urllib2.Request(url=url)
-        req.add_header('Accept', 'application/json')
-        try:
-            return json.load(urllib2.urlopen(req))
-        except ValueError:
-            return False
-
-    def send_request_xml(self, request):
-        return "XML request not implemented yet."
-
-class NexmoTTS(object):
+class NexmoTTS(Nexmo):
     def __init__(self, details):
+        Nexmo.__init__(self)
         self.tts = details
         self.tts.setdefault('type', 'tts')
-        self.tts.setdefault('server', APIURL)
         self.tts.setdefault('reqtype', 'json')
 
         self.reqtypes = [
@@ -280,20 +264,12 @@ class NexmoTTS(object):
             'xml'
         ]
 
-    def url_fix(self, s, charset='utf-8'):
-        if isinstance(s, unicode):
-            s = s.encode(charset, 'ignore')
-        scheme, netloc, path, qs, anchor = urlparse.urlsplit(s)
-        path = urllib.quote(path, '/%')
-        qs = urllib.quote_plus(qs, ':&=')
-        return urlparse.urlunsplit((scheme, netloc, path, qs, anchor))
-
     def check_tts(self):
         # mandatory parameters for all requests
         if not self.tts.get('api_key') or not self.tts.get('api_secret'):
             raise Exception("API key or secret not set")
 
-        if ((not self.tts.has_key('text')) or (not self.tts.get('text'))):
+        if (('text' not in self.tts) or (not self.tts.get('text'))):
             raise Exception('Text not set')
 
         return True
@@ -306,30 +282,87 @@ class NexmoTTS(object):
             # standard requests
             params = self.tts.copy()
             params.pop('reqtype')
-            params.pop('server')
-            server = "%s/tts/%s" % (self.tts['server'], self.tts['reqtype'])
+            server = "%s/tts/%s" % (self.get_url_api(), self.tts['reqtype'])
             self.request = server + "?" + urllib.urlencode(params)
-            return self.request
+            self.tts['request_uri'] = self.request
+            return self.tts
+
+    def send_request(self):
+        return self.send_nexmo_request(self.build_request())
 
     def get_details(self):
         return self.tts
 
+
+class NexmoVerify(Nexmo):
+    def __init__(self, details):
+        Nexmo.__init__(self)
+        self.verify = details
+        self.verify.setdefault('type', 'verify')
+        self.verify.setdefault('reqtype', 'json')
+
+        self.verify_reqs = [
+            'verify',
+            'verify/check',
+            'verify/search',
+            'verify/control'
+        ]
+
+        self.reqtypes = [
+            'json',
+            'xml'
+        ]
+
+    def check_verify(self):
+        # mandatory parameters for all requests
+        if not self.verify.get('api_key') or not self.verify.get('api_secret'):
+            raise Exception("API key or secret not set")
+
+        # verify request
+        if ((self.verify['type'] == 'verify')
+            and (('number' not in self.verify)
+                 or ('brand' not in self.verify)
+                 or (not self.verify.get('number'))
+                 or (not self.verify.get('brand')))):
+            raise Exception('verify request: number and/or brand not set')
+
+        # verify check
+        if ((self.verify['type'] == 'verify/check')
+            and (('code' not in self.verify)
+                 or ('request_id' not in self.verify))):
+            raise Exception('verify check: code and/or request_id not set')
+
+        # verify search
+        if ((self.verify['type'] == 'verify/search')
+            and (('request_id' not in self.verify)
+                 and ('request_ids' not in self.verify))):
+            raise Exception('verify search: request_id(s) not set')
+
+        # verify control
+        # request_id cmd
+        if ((self.verify['type'] == 'verify/control')
+            and (('request_id' not in self.verify)
+                 or ('cmd' not in self.verify))):
+            raise Exception('verify control: request_id and cmd not set')
+
+        return True
+
+    def build_request(self):
+        # check verify logic
+        if not self.check_verify():
+            return False
+        else:
+            # standard requests
+            params = self.verify.copy()
+            params.pop('reqtype')
+            server = "%s/%s/%s" % (self.get_url_api(), self.verify['type'],
+                                   self.verify['reqtype'])
+            self.request = server + "?" + urllib.urlencode(params)
+            self.verify['request_uri'] = self.request
+            return self.verify
+
     def send_request(self):
-        if not self.build_request():
-            return False
-        if self.tts['reqtype'] == 'json':
-            return self.send_request_json(self.request)
-        elif self.tts['reqtype'] == 'xml':
-            return self.send_request_xml(self.request)
+        return self.send_nexmo_request(self.build_request())
 
-    def send_request_json(self, request):
-        url = request
-        req = urllib2.Request(url=url)
-        req.add_header('Accept', 'application/json')
-        try:
-            return json.load(urllib2.urlopen(req))
-        except ValueError:
-            return False
-
-    def send_request_xml(self, request):
-        return "XML request not implemented yet."
+    def get_details(self):
+        return self.verify
