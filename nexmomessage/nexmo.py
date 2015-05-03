@@ -367,6 +367,7 @@ class NexmoVerify(Nexmo):
     def get_details(self):
         return self.verify
 
+
 class NexmoNI(Nexmo):
     def __init__(self, details):
         Nexmo.__init__(self)
