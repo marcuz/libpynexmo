@@ -1,1 +1,1 @@
-from .nexmo import NexmoMessage, NexmoCall, NexmoTTS
+from .nexmo import NexmoMessage, NexmoCall, NexmoTTS, NexmoVerify, NexmoNI
